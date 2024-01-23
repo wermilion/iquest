@@ -1,0 +1,56 @@
+x-build: &build
+    context: .docker
+    dockerfile: laravel.Dockerfile
+
+services:
+    app:
+        build: { <<: *build }
+        volumes:
+            - ./:/var/www/iquest
+        depends_on:
+            - db
+        networks:
+            - app-network
+
+    webserver:
+        build:
+            context: .docker
+            dockerfile: nginx.Dockerfile
+        volumes:
+            - ./:/var/www/iquest
+        ports:
+            - "8090:80"
+        depends_on:
+            - app
+        networks:
+            - app-network
+
+    migrator:
+        build: { <<: *build }
+        volumes:
+            - ./:/var/www/iquest
+        command: php artisan migrate --seed
+        depends_on:
+            - app
+            - db
+        networks:
+            - app-network
+
+    db:
+        image: postgres:alpine
+        volumes: [ db:/var/lib/postgresql/data ]
+        environment:
+            POSTGRES_DB: "iquest"
+            POSTGRES_USER: "admin"
+            POSTGRES_PASSWORD: "iquest_password"
+        restart: always
+        ports:
+            - "5433:5432"
+        networks:
+            - app-network
+
+volumes:
+    db: { }
+
+networks:
+    app-network:
