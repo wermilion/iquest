@@ -29,7 +29,7 @@ services:
         build: { <<: *build }
         volumes:
             - ./:/var/www/iquest
-        command: php artisan migrate --seed
+        command: php artisan migrate --force --seed
         depends_on:
             - app
             - db
@@ -37,7 +37,7 @@ services:
             - app-network
 
     db:
-        image: postgres:alpine
+        image: postgres:15-alpine
         volumes: [ db:/var/lib/postgresql/data ]
         environment:
             POSTGRES_DB: "iquest"
